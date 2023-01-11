@@ -2,12 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <meta
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+      name="viewport"
+    />
+    <meta content="ie=edge" http-equiv="X-UA-Compatible" />
+    <title>Pacman</title>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <canvas height="500" id="canvas" width="500"></canvas>
+    <div style="display: none">
+      <img alt="" id="animations" src="assets/animations.gif" />
+      <img alt="" id="ghosts" src="assets/ghost.png" />
+    </div>
+    <script src="src/ghost.js"></script>
+    <script src="src/pacman.js"></script>
+    <script src="src/game.js"></script>
   </body>
 </html>
