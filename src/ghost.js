@@ -30,6 +30,17 @@ class Ghost {
     }, 10000);
   }
 
+  isInRangeOfPacman() {
+    let xDistance = Math.abs(pacman.getMapX() - this.getMapX());
+    let yDistance = Math.abs(pacman.getMapY() - this.getMapY());
+    if (
+      Math.sqrt(xDistance * xDistance + yDistance * yDistance) <= this.range
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   changeRandomDirection() {
     this.randomTargetIndex += 1;
     this.randomTargetIndex = this.randomTargetIndex % 4;
@@ -37,7 +48,7 @@ class Ghost {
 
   moveProcess() {
     if (this.isInRangeOfPacman()) {
-      target = pacman;
+      this.target = pacman;
     } else {
       this.target = randomTargetsForGhosts[this.randomTargetIndex];
     }
@@ -45,8 +56,10 @@ class Ghost {
     this.moveForwards();
     if (this.checkCollisions()) {
       this.moveBackwards();
+      return;
     }
   }
+
   moveBackwards() {
     switch (this.direction) {
       case DIRECTION_RIGHT:
@@ -63,6 +76,7 @@ class Ghost {
         break;
     }
   }
+
   moveForwards() {
     switch (this.direction) {
       case DIRECTION_RIGHT:
@@ -79,6 +93,7 @@ class Ghost {
         break;
     }
   }
+
   checkCollisions() {
     return (
       map[this.getMapY()][this.getMapX()] === 1 ||
@@ -88,17 +103,6 @@ class Ghost {
     );
   }
 
-  isInRangeOfPacman() {
-    let xDistance = Math.abs(pacman.getMapX() - this.getMapX());
-    let yDistance = Math.abs(pacman.getMapY() - this.getMapY());
-    if (
-      Math.sqrt(xDistance * xDistance + yDistance * yDistance) <= this.range
-    ) {
-      return true;
-    }
-    return false;
-  }
-
   changeDirectionIfPossible() {
     let tempDirection = this.direction;
     this.direction = this.calculateNewDirection(
@@ -106,6 +110,10 @@ class Ghost {
       parseInt(this.target.x / oneBlockSize),
       parseInt(this.target.y / oneBlockSize)
     );
+    if (typeof this.direction === "undefined") {
+      this.direction = tempDirection;
+      return;
+    }
     this.moveForwards();
     if (this.checkCollisions()) {
       this.moveBackwards();
@@ -125,6 +133,8 @@ class Ghost {
       {
         x: this.getMapX(),
         y: this.getMapY(),
+        rightX: this.getMapXRightSide(),
+        rightY: this.getMapYRightSide(),
         moves: [],
       },
     ];
@@ -135,21 +145,64 @@ class Ghost {
         return poped.moves[0];
       } else {
         mp[poped.y][poped.x] = 1;
-        let neighborList = this.addNeightbors(poped, mp);
+        let neighborList = this.addNeighbors(poped, mp);
+        for (let i = 0; i < neighborList.length; i++) {
+          queue.push(neighborList[i]);
+        }
       }
     }
+    return DIRECTION_UP;
   }
 
-  addNeightbors(poped, mp) {
+  addNeighbors(poped, mp) {
     let queue = [];
     let numOfRows = mp.length;
     let numOfColumns = mp[0].length;
+
+    if (
+      poped.x - 1 >= 0 &&
+      poped.x - 1 < numOfRows &&
+      mp[poped.y][poped.x - 1] !== 1
+    ) {
+      let tempMoves = poped.moves.slice();
+      tempMoves.push(DIRECTION_LEFT);
+      queue.push({ x: poped.x - 1, y: poped.y, moves: tempMoves });
+    }
+    if (
+      poped.x + 1 >= 0 &&
+      poped.x + 1 < numOfRows &&
+      mp[poped.y][poped.x + 1] !== 1
+    ) {
+      let tempMoves = poped.moves.slice();
+      tempMoves.push(DIRECTION_RIGHT);
+      queue.push({ x: poped.x + 1, y: poped.y, moves: tempMoves });
+    }
+    if (
+      poped.y - 1 >= 0 &&
+      poped.y - 1 < numOfColumns &&
+      mp[poped.y - 1][poped.x] !== 1
+    ) {
+      let tempMoves = poped.moves.slice();
+      tempMoves.push(DIRECTION_UP);
+      queue.push({ x: poped.x, y: poped.y - 1, moves: tempMoves });
+    }
+    if (
+      poped.y + 1 >= 0 &&
+      poped.y + 1 < numOfColumns &&
+      mp[poped.y + 1][poped.x] !== 1
+    ) {
+      let tempMoves = poped.moves.slice();
+      tempMoves.push(DIRECTION_BOTTOM);
+      queue.push({ x: poped.x, y: poped.y + 1, moves: tempMoves });
+    }
+    return queue;
   }
 
   changeAnimation() {
     this.currentFrame =
       this.currentFrame === this.frameCount ? 1 : this.currentFrame + 1;
   }
+
   draw() {
     canvasContext.save();
     canvasContext.drawImage(
